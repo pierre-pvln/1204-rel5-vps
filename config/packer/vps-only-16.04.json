@@ -1,0 +1,111 @@
+{
+  "variables": {
+    "version":     "{{env `vps-version`}}",
+    "hostname":    "{{env `vps-hostname`}}",
+    "output_dir":  "{{env `vps-output_dir`}}",
+    "MAC_address": "{{env `vps-MAC_address`}}",
+    "MAC_clean"  : "{{env `vps-MAC_address_clean`}}",
+    "mode":        "{{env `vps-mode`}}"
+    },
+
+  "builders": [
+	{
+      "type": "virtualbox-iso",
+      "guest_os_type": "Ubuntu_64",
+	  "vm_name": "{{user `hostname`}}",
+	  
+      "output_directory": "{{user `output_dir`}}",
+	  
+	  "communicator": "ssh",
+	  "ssh_username": "{{user `ssh_name`}}",
+      "ssh_password": "{{user `ssh_pass`}}",
+      "ssh_wait_timeout": "20m",
+	  
+	  "iso_target_path": "file:///C:/Packer/local-cache/",
+	  "iso_url": "Location of virtual machine ISO file",
+	  "iso_url": "http://releases.ubuntu.com/xenial/ubuntu-16.04.2-server-amd64.iso",
+      "iso_url": "file:///E:/multi/downloads/sw-img/ubuntu/server/16.04/ubuntu-16.04.2-server-amd64.iso",
+      "iso_checksum": "2bce60d18248df9980612619ff0b34e6",
+      "iso_checksum_type": "md5",
+	  "iso_interface":"The ISO is attached to the IDE controller.",
+	  "iso_interface":"ide",
+	  
+	  "hard_drive_interface" : "The SATA controller, is where disk files should be placed.",
+	  "hard_drive_interface" : "sata",
+	  "disk_size" : "Limit the disksize to 10 Gb",
+      "disk_size" : 10240,
+      
+	  "vboxmanage": "Set specific values for Virtual Machine",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "512"],
+        ["modifyvm", "{{.Name}}", "--cpus", "1"],
+		["modifyvm", "{{.Name}}", "--description", "This is the {{.Name}} virtual machine.\r\n VPS version : {{ user `version`}}\r\n Created:  {{isotime \"2006-01-02\"}} {{isotime \"03:04:05\"}} UTC\r\n Mainuser: {{user `ssh_name`}}\r\n Password: {{user `ssh_pass`}} "],
+        ["modifyvm", "{{.Name}}", "--vram", "12"],
+        ["modifyvm", "{{.Name}}", "--acpi", "on"],
+		["modifyvm", "{{.Name}}", "--audio", "none"],
+		["modifyvm", "{{.Name}}", "--usb", "off"],
+		["modifyvm", "{{.Name}}", "--vrde", "off"],
+
+		["modifyvm", "{{.Name}}", "--nictype1", "Am79C973"],		
+		["modifyvm", "{{.Name}}", "--natpf1", "http,tcp,,8080,,80"],
+		["modifyvm", "{{.Name}}", "--natpf1", "ssh,tcp,,2222,,22"],
+		
+		["modifyvm", "{{.Name}}", "--nic2", "bridged"],
+		["modifyvm", "{{.Name}}", "--nictype2", "Am79C973"],
+		["modifyvm", "{{.Name}}", "--macaddress2", "{{user `MAC_clean`}}"],
+		["modifyvm", "{{.Name}}", "--cableconnected2", "on"],
+		["modifyvm", "{{.Name}}", "--nicpromisc2", "allow-all"],
+		["modifyvm", "{{.Name}}", "--bridgeadapter2", "Intel(R) Dual Band Wireless-AC 3160"]
+
+		],
+	  "http_directory" : "../../config/preseed",
+      "http_port_min" : 9001,
+      "http_port_max" : 9001,
+      
+	  "shutdown_command": "echo {{user `ssh_pass`}} | sudo -S shutdown -P now",
+      
+	  "boot_command": [
+        "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US<wait>",
+        " netcfg/get_domain=vm<wait>",
+        " netcfg/get_hostname={{user `hostname`}}<wait>",
+		" grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-16.04/preseed.cfg",
+        " -- <wait>",
+        "<enter><wait>"
+		]
+    }],
+ 
+ "provisioners": [
+	{ 
+      "type": 				"shell",
+	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+	  "inline":				[
+							"case {{user `mode`}} in bridge) echo 'auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n\nauto eth1\niface eth1 inet dhcp\n\n' > /etc/network/interfaces;; *) echo 'auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n\n' > /etc/network/interfaces;; esac"
+							],
+	  "only":               ["virtualbox-iso"]
+	},
+	{
+      "type": 				"shell",
+	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+	  "script": 			"./shell/ubuntu-16.04/install-puppet.sh"
+	}
+    ]
+   
+}

@@ -1,0 +1,5 @@
+# == Class: mysql
+#
+class mysql {
+
+}

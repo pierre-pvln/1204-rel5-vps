@@ -1,0 +1,1 @@
+Run the edit_hosts.bat as administrator !

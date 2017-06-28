@@ -1,0 +1,83 @@
+{
+  "variables": {
+      "version": "{{env `vps-version`}}",
+	  "hostname": "{{env `vps-hostname`}}",
+	  "output_dir": "{{env `vps-output_dir`}}"
+	  },
+
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+	  "guest_os_type": "Ubuntu_64",
+	  "vm_name": "{{user `hostname`}}",
+	  
+	  "output_directory": "{{user `output_dir`}}",
+	  
+	  "iso_target_path": "file:///C:/Packer/local-cache/",
+	  "iso_url": "Location of virtual machine ISO file",
+      "iso_url": "http://releases.ubuntu.com/trusty/ubuntu-14.04.3-server-amd64.iso",
+      "iso_url": "file:///E:/multi/downloads/sw-img/ubuntu/server/14.04/ubuntu-14.04.3-server-amd64.iso",
+      "iso_checksum": "9e5fecc94b3925bededed0fdca1bd417",
+      "iso_checksum_type": "md5",
+	  "iso_interface":"The ISO is attached to the IDE controller.",
+	  "iso_interface":"ide",
+	  
+	  "hard_drive_interface" : "The SATA controller, is where disk files should be placed.",
+	  "hard_drive_interface" : "sata",
+	  "disk_size" : "Limit the disksize to 10 Gb",
+      "disk_size" : 10240,
+      
+	  "vboxmanage": "Set specific values for Virtual Machine",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "512"],
+        ["modifyvm", "{{.Name}}", "--cpus", "1"],
+		["modifyvm", "{{.Name}}", "--description", "This is the {{.Name}} virtual machine.\r\n VPS version : {{ user `version`}}\r\n Mainuser: {{user `ssh_name`}}\r\n Password: {{user `ssh_pass`}} "],
+        ["modifyvm", "{{.Name}}", "--vram", "12"],
+        ["modifyvm", "{{.Name}}", "--acpi", "on"],
+		["modifyvm", "{{.Name}}", "--natpf1", "http,tcp,,8080,,80"],
+		["modifyvm", "{{.Name}}", "--natpf1", "ssh,tcp,,2222,,22"]		
+					],
+	  
+	  "ssh_username": "{{user `ssh_name`}}",
+      "ssh_password": "{{user `ssh_pass`}}",
+      "ssh_wait_timeout": "20m",
+      
+	  "http_directory" : "../../config/preseed",
+      "http_port_min" : 9001,
+      "http_port_max" : 9001,
+      
+	  "shutdown_command": "echo {{user `ssh_pass`}} | sudo -S shutdown -P now",
+      
+	  "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic ",
+        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/basic-preseed.cfg ",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+        "hostname={{user `hostname`}} ",
+        "fb=false debconf/frontend=noninteractive ",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+        "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+        "initrd=/install/initrd.gz -- <enter>"
+      ]
+    }],
+    
+  "provisioners" : [
+    {
+      "type": 				"shell",
+	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+	  "script":				"./shell/install-puppet.sh"
+	},
+	{
+      "type": 				"shell",
+	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+	  "script":				"./shell/install-whois.sh"
+	},
+	{
+	  "type": 			"puppet-masterless",
+	  "manifest_file":	"../puppet/manifests/vps_site.pp",
+	  "manifest_dir": 	"../puppet/manifests",
+	  "module_paths":	"../puppet/modules"
+	}
+  ]
+  
+}

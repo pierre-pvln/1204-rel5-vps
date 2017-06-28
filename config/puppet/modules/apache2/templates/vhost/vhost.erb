@@ -1,0 +1,24 @@
+#
+# Do not change this file. It's managed bij puppet.
+#
+<VirtualHost *:80>
+  ServerName <%= @vhost_domain %>
+  ServerAlias www.<%= @vhost_domain %> 
+
+  # TODO: zorgen dat de ServerAliases via vhost.pp verwerkt kunnen worden
+  #
+  ServerAlias labyrint-therapie.nl.local
+  ServerAlias labyrint-coaching.nl.local
+  ServerAlias labyrint-advies.nl.local
+
+  DocumentRoot <%= @vhost_root %>
+  ErrorLog /var/log/apache2/<%= @vhost_domain %>-error.log
+  CustomLog /var/log/apache2/<%= @vhost_domain %>-access.log common
+
+  <Directory <%= @vhost_root %>>
+    DirectoryIndex index.php index.html
+    Allow from all
+    Options +Includes +Indexes +FollowSymLinks
+    AllowOverride all
+  </Directory>
+</VirtualHost>

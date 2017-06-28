@@ -1,0 +1,53 @@
+************
+Commandline:
+************
+
+mysql -uroot -proot --execute="SELECT User, Host FROM mysql.user ORDER BY User"
+ 
+******* 
+Result:
+*******
+ 
++------------------+----------------+
+| User             | Host           |
++------------------+----------------+
+| debian-sys-maint | localhost      |
+| joomla           | localhost      |
+| joomla           | %              |
+| root             | localhost      |
+| root             | a-new-test-vps |
+| root             | 127.0.0.1      |
+| root             | ::1            |
++------------------+----------------+
+
+
+************
+Commandline:
+************
+
+mysql -uroot -proot -B -N -e "SELECT DISTINCT CONCAT('SHOW GRANTS FOR ''',user,'''@''',host,''';') AS query FROM mysql.user" | mysql -uroot -proot
+
+******* 
+Result:
+*******
+Grants for joomla@%
+GRANT USAGE ON *.* TO 'joomla'@'%' IDENTIFIED BY PASSWORD '*F70658E9BDD2910AC33ACDA164605DFC1DA70A68'
+GRANT ALL PRIVILEGES ON `joomla_db`.* TO 'joomla'@'%'
+Grants for root@127.0.0.1
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION
+Grants for root@::1
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'::1' WITH GRANT OPTION
+Grants for root@a-new-test-vps
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'a-new-test-vps' WITH GRANT OPTION
+GRANT PROXY ON ''@'' TO 'root'@'a-new-test-vps' WITH GRANT OPTION
+Grants for debian-sys-maint@localhost
+GRANT ALL PRIVILEGES ON *.* TO 'debian-sys-maint'@'localhost' IDENTIFIED BY PASSWORD '*E492988D8850CBA99433EAD4C9D14D026F0A17D6' WITH GRANT OPTION
+Grants for joomla@localhost
+GRANT USAGE ON *.* TO 'joomla'@'localhost' IDENTIFIED BY PASSWORD '*F70658E9BDD2910AC33ACDA164605DFC1DA70A68'
+GRANT ALL PRIVILEGES ON `joomla_db`.* TO 'joomla'@'localhost'
+Grants for root@localhost
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY PASSWORD '*81F5E21E35407D884A6CD4A731AEBFB6AF209E1B' WITH GRANT OPTION
+GRANT PROXY ON ''@'' TO 'root'@'localhost' WITH GRANT OPTION
+
+
+
