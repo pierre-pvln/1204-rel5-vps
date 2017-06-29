@@ -1,12 +1,13 @@
 {
   "variables": {
-    "version":     "{{env `vps-version`}}",
-    "hostname":    "{{env `vps-hostname`}}",
-    "output_dir":  "{{env `vps-output_dir`}}",
-    "MAC_address": "{{env `vps-MAC_address`}}",
-    "MAC_clean"  : "{{env `vps-MAC_address_clean`}}",
-    "mode":        "{{env `vps-mode`}}"
-    },
+	"version":     "{{env `vps-version`}}",
+	"hostname":    "{{env `vps-hostname`}}",
+	"output_dir":  "{{env `vps-output_dir`}}",
+	"MAC_address": "{{env `vps-MAC_address`}}",
+	"MAC_clean"  : "{{env `vps-MAC_address_clean`}}",
+	"mode":        "{{env `vps-mode`}}",
+	"cfg_dir":     "{{env `cfg_dir`}}"
+	},
 
   "builders": [
     {
@@ -20,8 +21,8 @@
 	  "ssh_username": "{{user `ssh_name`}}",
       "ssh_password": "{{user `ssh_pass`}}",
       "ssh_wait_timeout": "20m",
-	  
-	  "iso_target_path": "file:///C:/Packer/local-cache/",
+
+	  "iso_target_path": "file:///C:/packer/local-cache/",
 	  "iso_url": "Location of virtual machine ISO file",
       "iso_url": "http://releases.ubuntu.com/trusty/ubuntu-14.04.3-server-amd64.iso",
       "iso_url": "file:///E:/multi/downloads/sw-img/ubuntu/server/14.04/ubuntu-14.04.3-server-amd64.iso",
@@ -59,7 +60,7 @@
 
 		],
 
-   	  "http_directory" : "../../config/preseed",
+   	  "http_directory" : "{{user `cfg_dir`}}/preseed",
       "http_port_min" : 9001,
       "http_port_max" : 9001,
       
@@ -78,8 +79,8 @@
         "initrd=/install/initrd.gz -- <enter>"
       ]
     }],
- 
- "provisioners": [
+
+  "provisioners": [
     { 
       "type": 				"shell",
 	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
@@ -88,11 +89,12 @@
 							],
 	  "only":               ["virtualbox-iso"]
 	},
+
 	{
       "type": 				"shell",
 	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-	  "script": 			"./shell/ubuntu-14.04/install-puppet.sh"
+	  "script": 			"{{user `cfg_dir`}}/shell/ubuntu-12.04/install-puppet.sh"
 	}
 	]
-   
+
 }

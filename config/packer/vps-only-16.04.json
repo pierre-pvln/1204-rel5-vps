@@ -5,7 +5,8 @@
     "output_dir":  "{{env `vps-output_dir`}}",
     "MAC_address": "{{env `vps-MAC_address`}}",
     "MAC_clean"  : "{{env `vps-MAC_address_clean`}}",
-    "mode":        "{{env `vps-mode`}}"
+    "mode":        "{{env `vps-mode`}}",
+	"cfg_dir":     "{{env `cfg_dir`}}"
     },
 
   "builders": [
@@ -58,7 +59,7 @@
 		["modifyvm", "{{.Name}}", "--bridgeadapter2", "Intel(R) Dual Band Wireless-AC 3160"]
 
 		],
-	  "http_directory" : "../../config/preseed",
+   	  "http_directory" : "{{user `cfg_dir`}}/preseed",
       "http_port_min" : 9001,
       "http_port_max" : 9001,
       
@@ -104,7 +105,7 @@
 	{
       "type": 				"shell",
 	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-	  "script": 			"./shell/ubuntu-16.04/install-puppet.sh"
+	  "script": 			"{{user `cfg_dir`}}/shell/ubuntu-16.04/install-puppet.sh"
 	}
     ]
    

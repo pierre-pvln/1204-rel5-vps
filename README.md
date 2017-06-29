@@ -1,3 +1,4 @@
-1204-rel5-vps configs en scripts
+1204-rel5-vps 
 
-to create an Ubuntu 12.04 server with puppet from a commandline in virtualbox
+Configs en scripts to create an Ubuntu 12.04 server in virtualbox.
+Adding puppet functionality all from the commandline. 

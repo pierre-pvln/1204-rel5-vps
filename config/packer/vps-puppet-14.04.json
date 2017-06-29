@@ -1,9 +1,13 @@
 {
   "variables": {
-      "version": "{{env `vps-version`}}",
-	  "hostname": "{{env `vps-hostname`}}",
-	  "output_dir": "{{env `vps-output_dir`}}"
-	  },
+	"version":     "{{env `vps-version`}}",
+	"hostname":    "{{env `vps-hostname`}}",
+	"output_dir":  "{{env `vps-output_dir`}}",
+	"MAC_address": "{{env `vps-MAC_address`}}",
+	"MAC_clean"  : "{{env `vps-MAC_address_clean`}}",
+	"mode":        "{{env `vps-mode`}}",
+	"cfg_dir":     "{{env `cfg_dir`}}"
+	},
 
   "builders": [
     {
@@ -12,6 +16,11 @@
 	  "vm_name": "{{user `hostname`}}",
 	  
 	  "output_directory": "{{user `output_dir`}}",
+	  
+	  "communicator": "ssh",
+	  "ssh_username": "{{user `ssh_name`}}",
+      "ssh_password": "{{user `ssh_pass`}}",
+      "ssh_wait_timeout": "20m",
 	  
 	  "iso_target_path": "file:///C:/Packer/local-cache/",
 	  "iso_url": "Location of virtual machine ISO file",
@@ -31,18 +40,27 @@
       "vboxmanage": [
         ["modifyvm", "{{.Name}}", "--memory", "512"],
         ["modifyvm", "{{.Name}}", "--cpus", "1"],
-		["modifyvm", "{{.Name}}", "--description", "This is the {{.Name}} virtual machine.\r\n VPS version : {{ user `version`}}\r\n Mainuser: {{user `ssh_name`}}\r\n Password: {{user `ssh_pass`}} "],
+		["modifyvm", "{{.Name}}", "--description", "This is the {{.Name}} virtual machine.\r\n VPS version : {{ user `version`}}\r\n Created:  {{isotime \"2006-01-02\"}} {{isotime \"03:04:05\"}} UTC\r\n Mainuser: {{user `ssh_name`}}\r\n Password: {{user `ssh_pass`}} "],
         ["modifyvm", "{{.Name}}", "--vram", "12"],
         ["modifyvm", "{{.Name}}", "--acpi", "on"],
+		["modifyvm", "{{.Name}}", "--audio", "none"],
+		["modifyvm", "{{.Name}}", "--usb", "off"],
+		["modifyvm", "{{.Name}}", "--vrde", "off"],
+
+		["modifyvm", "{{.Name}}", "--nictype1", "Am79C973"],		
 		["modifyvm", "{{.Name}}", "--natpf1", "http,tcp,,8080,,80"],
-		["modifyvm", "{{.Name}}", "--natpf1", "ssh,tcp,,2222,,22"]		
-					],
-	  
-	  "ssh_username": "{{user `ssh_name`}}",
-      "ssh_password": "{{user `ssh_pass`}}",
-      "ssh_wait_timeout": "20m",
-      
-	  "http_directory" : "../../config/preseed",
+		["modifyvm", "{{.Name}}", "--natpf1", "ssh,tcp,,2222,,22"],
+		
+		["modifyvm", "{{.Name}}", "--nic2", "bridged"],
+		["modifyvm", "{{.Name}}", "--nictype2", "Am79C973"],
+		["modifyvm", "{{.Name}}", "--macaddress2", "{{user `MAC_clean`}}"],
+		["modifyvm", "{{.Name}}", "--cableconnected2", "on"],
+		["modifyvm", "{{.Name}}", "--nicpromisc2", "allow-all"],
+		["modifyvm", "{{.Name}}", "--bridgeadapter2", "Intel(R) Dual Band Wireless-AC 3160"]
+
+		],
+
+   	  "http_directory" : "{{user `cfg_dir`}}/preseed",
       "http_port_min" : 9001,
       "http_port_max" : 9001,
       
@@ -51,33 +69,38 @@
 	  "boot_command": [
         "<esc><esc><enter><wait>",
         "/install/vmlinuz noapic ",
-        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/basic-preseed.cfg ",
+        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-14.04/preseed.cfg ", 
         "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
         "hostname={{user `hostname`}} ",
+		"netcfg/choose_interface=eth0 ",
         "fb=false debconf/frontend=noninteractive ",
         "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
         "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
         "initrd=/install/initrd.gz -- <enter>"
       ]
     }],
-    
-  "provisioners" : [
-    {
+
+  "provisioners": [
+    { 
       "type": 				"shell",
 	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-	  "script":				"./shell/install-puppet.sh"
+	  "inline":				[
+							"case {{user `mode`}} in bridge) echo 'auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n\nauto eth1\niface eth1 inet dhcp\n\n' > /etc/network/interfaces;; *) echo 'auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n\n' > /etc/network/interfaces;; esac"
+							],
+	  "only":               ["virtualbox-iso"]
 	},
+
 	{
       "type": 				"shell",
 	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-	  "script":				"./shell/install-whois.sh"
+	  "script": 			"{{user `cfg_dir`}}/shell/ubuntu-14.04/install-puppet.sh"
 	},
+
 	{
-	  "type": 			"puppet-masterless",
-	  "manifest_file":	"../puppet/manifests/vps_site.pp",
-	  "manifest_dir": 	"../puppet/manifests",
-	  "module_paths":	"../puppet/modules"
+		"type": 			"puppet-masterless",
+		"manifest_file":	"../puppet/manifests/vps_site.pp",
+		"manifest_dir": 	"../puppet/manifests",
+		"module_paths":		"../puppet/modules"
 	}
-  ]
-  
+	]
 }
