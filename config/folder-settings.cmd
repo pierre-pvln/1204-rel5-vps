@@ -5,22 +5,41 @@
 
 :: IMPORTANT
 :: =========
-:: - Do not end folders with \
+:: - Do not end folders with \ or /
+:: - sometimes \ is used and sometimes /
+
+:: 
+:: GENERIC
+:: =======
 ::
+:: Setting folder for the generic log directory
+::
+SET log_dir=..\..\logging
+::
+:: ???????? WHERE IS THIS USED ???????
+::
+SET cfg_dir=../../config
 
-
+:: 
+:: PACKER
+:: ======
+::
 :: Setting folder with packer json configuration files
 :: 
 SET packer_cfg_dir=..\..\config\packer
-
+::
 :: Setting folder for packer output file (VM and disk)
 ::
 SET packer_out_dir=..\..\output
 
-:: Setting folder for the generic log directory
+:: 
+:: PUPPET
+:: ======
 ::
-SET log_dir=..\..\logging
-
-:: Setting for for config in packer json files
+:: Setting folder with puppet config and manifest files
+:: 
+SET puppet_cfg_dir=../../config/puppet
 ::
-SET cfg_dir=../../config
+:: Setting folder where puppet graphs are stored after download
+:: 
+SET puppet_grf_dir=..\..\graphs

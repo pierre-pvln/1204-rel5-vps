@@ -1,10 +1,11 @@
-:: Name:     vps_putty.cmd
+:: Name:     vps_graphs_pscp.cmd
 :: Purpose:  Create a the Virtual Machine image
 :: Author:   pierre.veelen@pvln.nl
-:: Revision: 2016 09 25 - initial version
+:: Revision: 2016 04 10 - initial version
 ::           2017 05 24 - comments added
 ::                      - check added if file with vps-settings exists
 ::                      - check added if host is reachable
+::           2017 07 01 - new folder structure
 ::
 
 @ECHO off
@@ -27,6 +28,8 @@ IF EXIST vps-settings.cmd (
 ) ELSE (
    SET error_message=File with VPS settings doesn't exist
 )
+call folder-settings.cmd
+call pscp-settings.cmd
 cd %parent%
 IF %error_message% NEQ errorfree GOTO ERROR_EXIT
 
@@ -43,28 +46,30 @@ SET vps-hostname=localhost
 
 :DO_SOMETHING
 ECHO *******************
-ECHO %vps-hostname%
+ECHO Connected: %vps-hostname%
 ECHO *******************
 :: THE ACTUAL THING TO DO
 :: ======================
-:: -ssh     use SSH protocol
-:: -pw      use password
-:: -P 2222  use port 2222 (since it is NAT)
+:: Transfer files
+:: -scp   use SCP protocol
+:: -pw    use password
 ::
 :: For test puposes
 :: -v     show verbose messages
 
-:: -ssh -P 2222 connects to NAT port 2222 -> 22 on server
-::
-"C:\_internet_download\35. Putty\putty" -ssh -P 2222 -pw the-admin the-admin@%vps-hostname%
+:: Transfer puppet graph files
+%_pscp% -scp -P 2222 -pw the-admin the-admin@%vps-hostname%:/tmp/graphs/resources.png %puppet_grf_dir%\resources.png
 
+%-pscp% -scp -P 2222 -pw the-admin the-admin@%vps-hostname%:/tmp/graphs/relationships.png %puppet_grf_dir%\relationships.png
+
+%_pscp% -scp -P 2222 -pw the-admin the-admin@%vps-hostname%:/tmp/graphs/expanded_relationships.png %puppet_grf_dir%\expanded_relationships.png
 
 GOTO CLEAN_EXIT
 
 :ERROR_EXIT
-   ECHO *******************
-   ECHO %error_message%
-   ECHO *******************
+ECHO *******************
+ECHO Error: %error_message%
+ECHO *******************
    
 :CLEAN_EXIT   
 timeout /T 3

@@ -1,14 +1,11 @@
-:: Name:     vps_graphs_pscp.cmd
+:: Name:     vps_pscp.cmd
 :: Purpose:  Create a the Virtual Machine image
-:: Author:   pierre.veelen@pvln.nl
-:: Revision: 2016 04 10 - initial version
+:: Author:   pierre@pvln.nl
+:: Revision: 2016 04 01 - initial version
 ::           2017 05 24 - comments added
 ::                      - check added if file with vps-settings exists
 ::                      - check added if host is reachable
-::
-
-::
-:: TODO: DELETE RETRIEVED_PUPPET FOLDER IF IT EXISTS
+::           2017 07 01 - new folder structure
 ::
 
 @ECHO off
@@ -25,12 +22,13 @@ SET error_message=errorfree
 
 :: GET SETTINGS
 :: ============
-cd ..
+CD ..\..\config
 IF EXIST vps-settings.cmd (
    call vps-settings.cmd
 ) ELSE (
    SET error_message=File with VPS settings doesn't exist
 )
+call pscp-settings.cmd
 cd %parent%
 IF %error_message% NEQ errorfree GOTO ERROR_EXIT
 
@@ -47,26 +45,44 @@ SET vps-hostname=localhost
 
 :DO_SOMETHING
 ECHO *******************
-ECHO %vps-hostname%
+ECHO Connected: %vps-hostname%
 ECHO *******************
 :: THE ACTUAL THING TO DO
 :: ======================
 :: Transfer files
-:: -scp   use SCP protocol
-:: -pw    use password
+:: -scp     use SCP protocol
+:: -r       copy directories recursively
+:: -pw      use password
+:: -P 2222  use port 2222 (since it is NAT)
 ::
 :: For test puposes
 :: -v     show verbose messages
 
-:: Transfer puppet graph files
-"C:\_internet_download\35. Putty\pscp" -scp -r -P 2222 -pw the-admin the-admin@%vps-hostname%:/tmp/packer-puppet-masterless/* ..\retrieved-puppet\
+:: Transfer puppet files
+%_pscp% -scp -P 2222 -r -pw the-admin %puppet_cfg_dir%/ the-admin@%vps-hostname%:/tmp/packer-puppet-masterless/
 
+:: Transfer puppet script files
+%_pscp% -scp -P 2222 -pw the-admin *.sh the-admin@%vps-hostname%:/tmp
+
+ECHO.
+ECHO *******************
+ECHO:
+ECHO Ga naar directory /tmp
+ECHO:
+ECHO Niet vergeten op de server het commando
+ECHO chmod +x *.sh
+ECHO geven. Anders kunnen de scripts niet lopen
+ECHO:
+ECHO En ook niet vergeten ./puppet_stdlib.sh te runnen. 
+ECHO Anders ontbreken enkele puppet modules.
+ECHO:
+ECHO *******************
 GOTO CLEAN_EXIT
 
 :ERROR_EXIT
-   ECHO *******************
-   ECHO %error_message%
-   ECHO *******************
+ECHO *******************
+ECHO Error: %error_message%
+ECHO *******************
    
 :CLEAN_EXIT   
 timeout /T 3
