@@ -1,12 +1,12 @@
-:: Name:     vps_putty.cmd
+:: Name:     vps_graphs_pscp.cmd
 :: Purpose:  Create a the Virtual Machine image
 :: Author:   pierre@pvln.nl
-:: Revision: 2016 09 25 - initial version
+:: Revision: 2016 04 10 - initial version
 ::           2017 05 24 - comments added
 ::                      - check added if file with vps-settings exists
 ::                      - check added if host is reachable
 ::           2017 07 01 - new folder structure
-::
+::                      - ssh port switch added for localhost or directconnect
 
 @ECHO off
 SETLOCAL ENABLEEXTENSIONS
@@ -28,6 +28,7 @@ IF EXIST vps-settings.cmd (
 ) ELSE (
    SET error_message=File with VPS settings doesn't exist
 )
+call folder-settings.cmd
 call pscp-settings.cmd
 cd %parent%
 IF %error_message% NEQ errorfree GOTO ERROR_EXIT
@@ -49,16 +50,23 @@ ECHO Connected: %vps-hostname%
 ECHO *******************
 :: THE ACTUAL THING TO DO
 :: ======================
-:: -ssh     use SSH protocol
-:: -pw      use password
-:: -P 2222  use port 2222 (since it is NAT)
+:: Transfer files
+:: -scp   use SCP protocol
+:: -pw    use password
 ::
 :: For test puposes
 :: -v     show verbose messages
 
-:: -ssh -P 2222 connects to NAT port 2222 -> 22 on server
-::
-%_putty% -ssh -P 2222 -pw the-admin the-admin@%vps-hostname%
+IF %vps-hostname% NEQ localhost (
+   SET connectport=22
+) ELSE (
+   SET connectport=2222
+)   
+
+IF EXIST %puppet_rtr_dir% rmdir %puppet_rtr_dir% /s /q
+
+:: Transfer puppet graph files
+%_pscp% -scp -r -P %connectport% -pw the-admin the-admin@%vps-hostname%:/tmp/packer-puppet-masterless/* %puppet_rtr_dir%\
 
 GOTO CLEAN_EXIT
 

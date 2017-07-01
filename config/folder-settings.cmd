@@ -43,3 +43,7 @@ SET puppet_cfg_dir=../../config/puppet
 :: Setting folder where puppet graphs are stored after download
 :: 
 SET puppet_grf_dir=..\..\graphs
+::
+:: Setting folder where puppet config from VPS are stored after download
+:: 
+SET puppet_rtr_dir=..\..\retrieved-puppet

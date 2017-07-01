@@ -1,14 +1,12 @@
-:: Name:     vps_graphs_pscp.cmd
+:: Name:     vps_putty.cmd
 :: Purpose:  Create a the Virtual Machine image
 :: Author:   pierre@pvln.nl
-:: Revision: 2016 04 10 - initial version
+:: Revision: 2016 09 25 - initial version
 ::           2017 05 24 - comments added
 ::                      - check added if file with vps-settings exists
 ::                      - check added if host is reachable
 ::           2017 07 01 - new folder structure
-
-::
-:: TODO: DELETE RETRIEVED_PUPPET FOLDER IF IT EXISTS
+::                      - ssh port switch added for localhost or directconnect
 ::
 
 @ECHO off
@@ -46,21 +44,31 @@ PING -4 -n 1 %vps-hostname% |find "TTL=" && GOTO DO_SOMETHING
 SET error_message=%vps-hostname% not available on vps-hostname
 SET vps-hostname=localhost
 
+
 :DO_SOMETHING
 ECHO *******************
 ECHO Connected: %vps-hostname%
 ECHO *******************
 :: THE ACTUAL THING TO DO
 :: ======================
-:: Transfer files
-:: -scp   use SCP protocol
-:: -pw    use password
+:: -ssh     use SSH protocol
+:: -pw      use password
+:: -P 2222  use port 2222 (since it is NAT on localhost)
+:: -P 22    use port 22 (since it is connected over internet)
 ::
 :: For test puposes
 :: -v     show verbose messages
 
-:: Transfer puppet graph files
-%_pscp% -scp -r -P 2222 -pw the-admin the-admin@%vps-hostname%:/tmp/packer-puppet-masterless/* ..\retrieved-puppet\
+:: -ssh -P 2222 connects to NAT port 2222 -> 22 on server
+::
+
+IF %vps-hostname% NEQ localhost (
+   SET connectport=22
+) ELSE (
+   SET connectport=2222
+)   
+
+%_putty% -ssh -P %connectport% -pw the-admin the-admin@%vps-hostname%
 
 GOTO CLEAN_EXIT
 

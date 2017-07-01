@@ -6,6 +6,7 @@
 ::                      - check added if file with vps-settings exists
 ::                      - check added if host is reachable
 ::           2017 07 01 - new folder structure
+::                      - ssh port switch added for localhost or directconnect
 ::
 
 @ECHO off
@@ -28,6 +29,7 @@ IF EXIST vps-settings.cmd (
 ) ELSE (
    SET error_message=File with VPS settings doesn't exist
 )
+call folder-settings.cmd
 call pscp-settings.cmd
 cd %parent%
 IF %error_message% NEQ errorfree GOTO ERROR_EXIT
@@ -58,11 +60,17 @@ ECHO *******************
 :: For test puposes
 :: -v     show verbose messages
 
+IF %vps-hostname% NEQ localhost (
+   SET connectport=22
+) ELSE (
+   SET connectport=2222
+)   
+
 :: Transfer puppet files
-%_pscp% -scp -P 2222 -r -pw the-admin %puppet_cfg_dir%/ the-admin@%vps-hostname%:/tmp/packer-puppet-masterless/
+%_pscp% -scp -P %connectport% -r -pw the-admin %puppet_cfg_dir%/ the-admin@%vps-hostname%:/tmp/packer-puppet-masterless/
 
 :: Transfer puppet script files
-%_pscp% -scp -P 2222 -pw the-admin *.sh the-admin@%vps-hostname%:/tmp
+%_pscp% -scp -P %connectport% -pw the-admin *.sh the-admin@%vps-hostname%:/tmp
 
 ECHO.
 ECHO *******************
