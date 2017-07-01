@@ -1,0 +1,4 @@
+1) Check preseed configs 12.04
+2) Check preseed configs 14.04
+3) Check preseed configs 16.04
+

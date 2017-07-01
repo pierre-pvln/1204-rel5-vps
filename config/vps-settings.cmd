@@ -60,5 +60,5 @@ SET vps-osname=ubuntu
 :: Values: 12.04 -> Ubuntu 12.04
 ::         14.04 -> Ubuntu 14.04 
 ::         16.04 -> Ubuntu 16.04
-SET vps-osversion=12.04
+SET vps-osversion=14.04
 

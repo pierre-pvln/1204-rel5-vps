@@ -24,9 +24,9 @@
 
 	  "iso_target_path": "file:///C:/packer/local-cache/",
 	  "iso_url": "Location of virtual machine ISO file",
-      "iso_url": "http://releases.ubuntu.com/trusty/ubuntu-14.04.3-server-amd64.iso",
-      "iso_url": "file:///E:/multi/downloads/sw-img/ubuntu/server/14.04/ubuntu-14.04.3-server-amd64.iso",
-      "iso_checksum": "9e5fecc94b3925bededed0fdca1bd417",
+      "iso_url": "http://releases.ubuntu.com/trusty/ubuntu-14.04.5-server-amd64.iso",
+      "iso_url": "file:///E:/multi/downloads/sw-img/ubuntu/server/14.04/ubuntu-14.04.5-server-amd64.iso",
+      "iso_checksum": "dd54dc8cfc2a655053d19813c2f9aa9f",
       "iso_checksum_type": "md5",
 	  "iso_interface":"The ISO is attached to the IDE controller.",
 	  "iso_interface":"ide",
@@ -93,7 +93,7 @@
 	{
       "type": 				"shell",
 	  "execute_command":	"echo {{user `ssh_pass`}} | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
-	  "script": 			"{{user `cfg_dir`}}/shell/ubuntu-12.04/install-puppet.sh"
+	  "script": 			"{{user `cfg_dir`}}/shell/ubuntu-14.04/install-puppet.sh"
 	}
 	]
 
