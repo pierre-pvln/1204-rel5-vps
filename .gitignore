@@ -1,0 +1,40 @@
+##
+# Ingore the following files for Git
+##
+
+##
+# Git
+##
+#.gitignore
+git_project_initialize.cmd
+git_bash.cmd
+
+##
+# windows files 
+##
+Thumbs.db
+
+
+##
+# output files
+##
+output/*
+graphs/*
+
+
+##
+# files with site-backups
+##
+live-site-backup
+retrieved-backups
+retrieved-puppet
+
+##
+# logging files
+##
+logging/*
+
+##
+# info files
+##
+info/*
