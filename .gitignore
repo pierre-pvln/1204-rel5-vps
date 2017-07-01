@@ -3,11 +3,12 @@
 ##
 
 ##
-# Git
+# Git scripts
 ##
 #.gitignore
 git_project_initialize.cmd
 git_bash.cmd
+git_gui.cmd
 
 ##
 # windows files 
