@@ -7,8 +7,10 @@
 ##
 #.gitignore
 git_project_initialize.cmd
+git_project_initialize.sh
 git_bash.cmd
 git_gui.cmd
+
 
 ##
 # windows files 
